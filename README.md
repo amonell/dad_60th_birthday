@@ -22,6 +22,5 @@ No build step is required.
 
 ## Access the site (GitHub Pages URL)
 - After publishing, your site will be available at:
-  - `https://<your-username>.github.io/dad_60th_birthday/`
-  - For organizations: `https://<your-org>.github.io/dad_60th_birthday/`
+  - `https://amonell.github.io/dad_60th_birthday/`
 - You can also copy the exact URL shown in the repository: `Settings` → `Pages` → `Your site is live at ...`. 
