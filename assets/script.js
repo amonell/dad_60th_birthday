@@ -17,6 +17,19 @@ const STORAGE_KEYS = {
   lockedDate: 'dad60_locked_date', // last submitted
 };
 
+// Parse YYYY-MM-DD as a local date (avoids UTC shift)
+function parseDateInputToLocalDate(iso) {
+  if (!iso) return null;
+  const [y, m, d] = iso.split('-').map(Number);
+  return new Date(y, (m || 1) - 1, d || 1);
+}
+
+function formatPrettyLocalDate(iso) {
+  const d = parseDateInputToLocalDate(iso);
+  if (!d || isNaN(d)) return iso;
+  return d.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
 function showToast(message) {
   const toast = document.createElement('div');
   toast.className = 'toast';
@@ -57,8 +70,7 @@ function clearLastChoice() { localStorage.removeItem(STORAGE_KEYS.lockedDate); }
 function renderLastChoice() {
   const last = getLastChoice();
   if (last) {
-    const pretty = new Date(last).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
-    UI.submitStatus.textContent = `Last choice: ${pretty}`;
+    UI.submitStatus.textContent = `Last choice: ${formatPrettyLocalDate(last)}`;
     UI.clearLastChoice.style.display = '';
   } else {
     UI.submitStatus.textContent = '';
@@ -100,7 +112,7 @@ UI.logoutButton.addEventListener('click', () => {
 });
 
 async function sendEmail(dateIso) {
-  const pretty = new Date(dateIso).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+  const pretty = formatPrettyLocalDate(dateIso);
   const endpoint = 'https://formsubmit.co/ajax/amonell@ucsd.edu';
   const payload = {
     _subject: 'Skydiving Date Choice',
@@ -132,10 +144,10 @@ UI.dateForm.addEventListener('submit', async (e) => {
     showToast('Please select a date.');
     return;
   }
-  const chosen = new Date(dateIso);
+  const chosen = parseDateInputToLocalDate(dateIso);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  if (chosen <= today) {
+  if (!(chosen instanceof Date) || isNaN(chosen) || chosen <= today) {
     showToast('Please pick a future date.');
     return;
   }
@@ -144,8 +156,7 @@ UI.dateForm.addEventListener('submit', async (e) => {
   const ok = await sendEmail(dateIso);
   saveLastChoice(dateIso);
   renderLastChoice();
-  const pretty = chosen.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
-  showToast(ok ? `Choice sent: ${pretty}` : 'Email app opened to send.');
+  showToast(ok ? `Choice sent: ${formatPrettyLocalDate(dateIso)}` : 'Email app opened to send.');
 });
 
 UI.clearLastChoice.addEventListener('click', () => {
