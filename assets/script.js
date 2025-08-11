@@ -7,16 +7,17 @@ const UI = {
   dateForm: document.getElementById('date-form'),
   dateInput: document.getElementById('skydive-date'),
   submitStatus: document.getElementById('submit-status'),
+  clearLastChoice: document.getElementById('clear-last-choice'),
   toasts: document.getElementById('toasts'),
 };
 
 const CREDENTIALS = { username: 'cmonell', password: 'birthday' };
 const STORAGE_KEYS = {
   authToken: 'dad60_auth',
-  lockedDate: 'dad60_locked_date',
+  lockedDate: 'dad60_locked_date', // last submitted
 };
 
-function showToast(message, type = 'info') {
+function showToast(message) {
   const toast = document.createElement('div');
   toast.className = 'toast';
   toast.textContent = message;
@@ -39,25 +40,9 @@ function launchConfetti() {
   const colors = ['#5b8cff', '#8ef0d1', '#ffd166', '#ef476f', '#06d6a0'];
 
   (function frame() {
-    confetti({
-      particleCount: 3,
-      angle: 60,
-      spread: 60,
-      origin: { x: 0 },
-      colors,
-      ticks: 200
-    });
-    confetti({
-      particleCount: 3,
-      angle: 120,
-      spread: 60,
-      origin: { x: 1 },
-      colors,
-      ticks: 200
-    });
-    if (Date.now() < end) {
-      requestAnimationFrame(frame);
-    }
+    confetti({ particleCount: 3, angle: 60, spread: 60, origin: { x: 0 }, colors, ticks: 200 });
+    confetti({ particleCount: 3, angle: 120, spread: 60, origin: { x: 1 }, colors, ticks: 200 });
+    if (Date.now() < end) requestAnimationFrame(frame);
   })();
 }
 
@@ -65,25 +50,28 @@ function saveAuth() { localStorage.setItem(STORAGE_KEYS.authToken, 'yes'); }
 function clearAuth() { localStorage.removeItem(STORAGE_KEYS.authToken); }
 function isAuthed() { return localStorage.getItem(STORAGE_KEYS.authToken) === 'yes'; }
 
-function saveLockedDate(isoDate) { localStorage.setItem(STORAGE_KEYS.lockedDate, isoDate); }
-function getLockedDate() { return localStorage.getItem(STORAGE_KEYS.lockedDate); }
-function clearLockedDate() { localStorage.removeItem(STORAGE_KEYS.lockedDate); }
+function saveLastChoice(isoDate) { localStorage.setItem(STORAGE_KEYS.lockedDate, isoDate); }
+function getLastChoice() { return localStorage.getItem(STORAGE_KEYS.lockedDate); }
+function clearLastChoice() { localStorage.removeItem(STORAGE_KEYS.lockedDate); }
+
+function renderLastChoice() {
+  const last = getLastChoice();
+  if (last) {
+    const pretty = new Date(last).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+    UI.submitStatus.textContent = `Last choice: ${pretty}`;
+    UI.clearLastChoice.style.display = '';
+  } else {
+    UI.submitStatus.textContent = '';
+    UI.clearLastChoice.style.display = 'none';
+  }
+}
 
 function updateUIForAuth() {
   if (isAuthed()) {
     UI.loginCard.classList.add('hidden');
     UI.mainCard.classList.remove('hidden');
     setMinDateToTomorrow(UI.dateInput);
-    const locked = getLockedDate();
-    if (locked) {
-      UI.dateInput.value = locked;
-      UI.dateInput.disabled = true;
-      const lockedDate = new Date(locked).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
-      UI.submitStatus.textContent = `Locked: ${lockedDate}`;
-    } else {
-      UI.submitStatus.textContent = '';
-      UI.dateInput.disabled = false;
-    }
+    renderLastChoice();
     launchConfetti();
   } else {
     UI.mainCard.classList.add('hidden');
@@ -154,11 +142,16 @@ UI.dateForm.addEventListener('submit', async (e) => {
 
   UI.submitStatus.textContent = 'Submitting...';
   const ok = await sendEmail(dateIso);
-  saveLockedDate(dateIso);
-  UI.dateInput.disabled = true;
+  saveLastChoice(dateIso);
+  renderLastChoice();
   const pretty = chosen.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
-  UI.submitStatus.textContent = `Locked: ${pretty}`;
-  showToast(ok ? 'Choice sent and locked!' : 'Choice locked. Email app opened to send.');
+  showToast(ok ? `Choice sent: ${pretty}` : 'Email app opened to send.');
+});
+
+UI.clearLastChoice.addEventListener('click', () => {
+  clearLastChoice();
+  renderLastChoice();
+  showToast('Last choice cleared.');
 });
 
 // Init

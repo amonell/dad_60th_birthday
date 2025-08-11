@@ -42,10 +42,13 @@
           <div class="field">
             <label for="skydive-date">Pick the day you'd like to go skydiving</label>
             <input id="skydive-date" name="skydive_date" type="date" required />
-            <p class="hint">Choose any future date. Once submitted, your choice will be locked.</p>
+            <p class="hint">Choose any future date. You can adjust your choice later; we'll remember your last submitted date.</p>
           </div>
-          <button id="submit-date" class="btn success" type="submit">Lock in my choice</button>
-          <p id="submit-status" class="status" aria-live="polite"></p>
+          <button id="submit-date" class="btn success" type="submit">Submit my choice</button>
+          <div class="last-row">
+            <p id="submit-status" class="status" aria-live="polite"></p>
+            <button id="clear-last-choice" class="btn ghost small" type="button" style="display:none">Clear last choice</button>
+          </div>
         </form>
 
         <div class="footer-actions">

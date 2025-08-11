@@ -103,6 +103,7 @@ body {
   letter-spacing: 0.3px;
   transition: transform 0.06s ease, box-shadow 0.15s ease, background 0.2s ease, border-color 0.2s ease;
 }
+.btn.small { padding: 8px 12px; font-weight: 600; }
 .btn:active { transform: translateY(1px); }
 
 .btn.primary { background: var(--primary); color: white; }
@@ -127,6 +128,8 @@ body {
 .footer-actions { margin-top: 16px; display: flex; justify-content: flex-end; }
 
 .celebration { text-align: center; margin-bottom: 12px; }
+
+.last-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 
 /* Toasts */
 .toasts {
